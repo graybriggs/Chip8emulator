@@ -2,7 +2,7 @@
 
 #include "chip8.h"
 
-y
+
 void parse_instruction(unsigned short opcode)
 {
     switch(opcode & 0xF000) {
