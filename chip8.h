@@ -6,11 +6,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-struct _callstack {
+#include "stack.h"
 
-  unsigned short callstack[16];   // callstack is only used to store return addresses when subroutines are called
-  unsigned short SP;              // stack pointer;
-};
 
 struct _chip8cpu {
 
@@ -22,6 +19,10 @@ struct _chip8cpu {
 
   struct _callstack stack;
 };
+
+typedef struct _chip8cpu chip8cpu;
+
+extern void chip8_init(chip8cpu*);
 
 
 extern void parse_instruction(unsigned short);
