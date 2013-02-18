@@ -2,6 +2,9 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 struct _callstack {
 
@@ -21,6 +24,7 @@ struct _chip8cpu {
 };
 
 
+extern void parse_instruction(unsigned short);
 
 
 
