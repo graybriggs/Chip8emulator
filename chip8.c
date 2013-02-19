@@ -78,21 +78,25 @@ void parse_instruction(unsigned short opcode)
 	// ---- 8XY0 - Sets VX to the value of VY
       case 0x0000:
 	reg[(opcode & 0x0F00) >> 8] = reg[(opcode & 0x00F0) >> 4];
+	program_counter += 2;
 	break;
 
 	// ----- 8XY1 - Sets VX to VX | VY
       case 0x0001:
 	reg[(opcode & 0x0F00) >> 8] |= reg[(opcode & 0x00F0) >> 4];
+	program_counter += 2;
 	break;
 
 	// ----- 8XY2 - Sets VX to VX & VY
       case 0x0002:
 	reg[(opcode & 0x0F00) >> 8] &= reg[(opcode & 0x00F0) >> 4];
+	program_counter += 2;
         break;
 
 	// ----- 8XY3 - Sets VX to VX ^ VY
       case 0x0003:
 	reg[(opcode & 0x0F00) >> 8] ^= reg[(opcode & 0x00F0) >> 4];
+	program_counter += 2;
         break;
 
 	// ----- 8XY4 ------
@@ -105,24 +109,33 @@ void parse_instruction(unsigned short opcode)
 	  reg[0x000F] = 0x0;
 	break;
 
-	// ----- 8XY5 -----
-      case 0x0005: //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
-	reg[(opcode & 0x0F00) >> 8] -= reg[(opcode & 0x00F0) >> 4];
-	if (((opcode & 0x0F00) >> 8) - ((opcode & 0x00F0) >> 4) < 0x0000)
-	  reg[0xF] = 0x1;
+	// ----- 8XY5 - VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
+      case 0x0005:
+	unsigned short vx = reg[(opcode & 0x0F00) >> 8]; 
+	unsigned short vy = reg[(opcode & 0x00F0) >> 4];
 
-       // ----- 8XY6 -----
-      case 0x0006:  // wrong !!!!!!!!!!!!!!!!!
-	    reg[0xF] = reg[opcode & 0x0F00] & (1 << 8)
-	    break;
+	if (vy - vx < 0x0000)
+	  reg[0x000F] = 0x0001;
+
+	reg[vx] -= reg[vx];
+	program_counter += 2;
+	break;
+
+       // ----- 8XY6 - Shifts VX right by one. VF is set to the value of the LSB of VX before the shift
+      case 0x0006:
+	reg[0xF] = (reg[opcode & 0x0F00] & 0x0001); // set V[F] to LSB
+	reg[(opcode & 0x0F00) >> 8] >> 1;
+	program_counter += 2;
+	break;
 
       // ----- 8XY7 -----
       case 0x0007:
-	  break;
-	    // ----- 8XY7 -----
+	break;
+      // ----- 8XYE - Shifts VX left by one. VF is set to the value of the MSB of VX before the shift
       case 0x000E;
-	  break;
+        reg
+      
+	break;
       default:
 	  break;
 
