@@ -17,8 +17,8 @@ void parse_instruction(unsigned short opcode)
       }
       // ---- 00EE - returns from subroutine -----
       else if((opcode & 0x00FF) == 0x00EE) {
-	program_counter = callstack.top();
-	callstack.pop();
+	program_counter = stack_top(callstack);
+	pop(callstack);
 	program_counter += 2;
       }
     }
@@ -31,7 +31,7 @@ void parse_instruction(unsigned short opcode)
     
     // ---- 2NNN - call subroutine at NNN
     case 0x2000:
-      callstack.push(program_counter);
+      stack_push(callstack, program_counter);
       program_counter = opcode & 0x0FFF;
       break;
 
