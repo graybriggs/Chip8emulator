@@ -12,7 +12,7 @@ void parse_instruction(unsigned short opcode)
 
       // ---- 00E0 - Clears the screen -----
       if ((opcode & 0x00F0) == 0x00E0) {
-	// clear(screen);
+	clear_screen(video);
 	program_counter += 2;
       }
       // ---- 00EE - returns from subroutine -----
@@ -123,7 +123,7 @@ void parse_instruction(unsigned short opcode)
 
        // ----- 8XY6 - Shifts VX right by one. VF is set to the value of the LSB of VX before the shift
       case 0x0006:
-	reg[0xF] = (reg[opcode & 0x0F00] & 0x0001); // set V[F] to LSB
+	reg[0x000F] = (reg[opcode & 0x0F00] & 0x0001); // set V[F] to LSB
 	reg[(opcode & 0x0F00) >> 8] >> 1;
 	program_counter += 2;
 	break;
@@ -131,9 +131,11 @@ void parse_instruction(unsigned short opcode)
       // ----- 8XY7 -----
       case 0x0007:
 	break;
+
       // ----- 8XYE - Shifts VX left by one. VF is set to the value of the MSB of VX before the shift
-      case 0x000E;
-        reg
+      case 0x000E:
+	reg[0x000F] = (reg[(opcode & 0x0F00) >> 8] & 0x8000);
+	reg[(opcode & 0x0F00) >> 8] >> 1;
       
 	break;
       default:
@@ -161,11 +163,82 @@ void parse_instruction(unsigned short opcode)
       program_counter = (opcode & 0x0FFF) + reg[0x0000];
       break;
 
+      // ---- CXNN - Sets VX to a random number and NN
     case 0xC000:
       reg[(opcode & 0x0F00) >> 8] = rand() & (opcode & 0x00FF)
 	program_counter += 2;
       break;
 
+
+      // ---- DXYN -
+    case 0xD000:
+      break;
+
+    case 0xE000:
+      // ---- EX9E - Skips the next instruction if the key stored in VX is pressed
+      if ((opcode & 0x00FF) == 0x009E) {
+      }
+
+      // ---- EXA1 - Skips the next instruction if the key stored in VX isn't pressed
+      else if ((opcode & 0x00FF) == 0x00A1) {
+
+      }
+      
+    case 0xF000: {
+
+      switch(opcode & 0x00FF) {
+      
+	// ---- FX07 - Sets VX to the value of the delay timer
+      case 0x0007:
+	set_delay_timer(timer, reg[opcode & 0x0F00]);
+	break;
+
+	// ---- FX0A - A key press is awaited and then stored in VX
+      case 0x000A:
+	char key = wait_key_press();
+	reg[(opcode & 0x0F00) >> 8] = key;
+	program_counter += 2;
+	break;
+      }
+      
+        // ---- FX15 - Sets the delay timer to VX
+      case 0x0015:
+	set_delay_timer(reg[opcode & 0x0F00]);
+	program_counter += 2;
+	break;
+	
+	// ---- FX18 - Sets the sound timer to VX
+      case 0x0018:
+	set_sound_timer(reg[opcode & 0x0F00]);
+	program_counter += 2;
+	break;
+
+	// ---- FX1E - Adds VX to I
+      case 0x001E:
+	I += reg[opcode & 0x0F00];
+	program_counter += 2;
+	break;
+
+	// ---- FX55 - Stores V0 to Vx in memory starting at address I
+      case 0x0055:
+	char max_reg = opcode & 0x0F00;
+
+	for (int i = 0; i <= max_reg; i++) {
+	  main_memory[i] = reg[i];
+	}
+	program_counter += 2;
+
+	// ---- FX65 - Fills V0 to VX with values from memory starting at address I
+      case 0x0065:
+	char max_reg = opcode & 0x0F00;
+
+	for (int i = 0; <= max_reg; i++) {
+	  reg[i] = main_memory[I++];
+	}
+	program_counter += 2;
+	break;
+    }
+  
   }
 }
 
