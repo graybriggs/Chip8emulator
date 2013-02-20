@@ -190,7 +190,8 @@ void parse_instruction(unsigned short opcode)
       
 	// ---- FX07 - Sets VX to the value of the delay timer
       case 0x0007:
-	set_delay_timer(timer, reg[opcode & 0x0F00]);
+	set_delay_timer(timer, reg[(opcode & 0x0F00) >> 8]);
+	program_counter += 2;
 	break;
 
 	// ---- FX0A - A key press is awaited and then stored in VX
@@ -203,13 +204,13 @@ void parse_instruction(unsigned short opcode)
       
         // ---- FX15 - Sets the delay timer to VX
       case 0x0015:
-	set_delay_timer(reg[opcode & 0x0F00]);
+	set_delay_timer(reg[(opcode & 0x0F00) >> 8]);
 	program_counter += 2;
 	break;
 	
 	// ---- FX18 - Sets the sound timer to VX
       case 0x0018:
-	set_sound_timer(reg[opcode & 0x0F00]);
+	set_sound_timer(reg[(opcode & 0x0F00) >> 8]);
 	program_counter += 2;
 	break;
 
