@@ -233,6 +233,21 @@ void parse_instruction(unsigned short opcode)
 	program_counter += 2;
 	break;
 
+	// ---- FX29 - Sets I to the location of the sprite for the character in VX. Character 0-F (in hex) are represented by 4x5 font.
+      case 0x0029:
+	I = get_sprite_at(reg[(opcode & 0x0F00) >> 8]);
+	program_counter += 2;
+	break;
+
+      case 0x0033:
+	char contents = reg[(opcode & 0x0F00) >> 8];
+	I   = contents / 100;  // hundreds
+	I+1 = ((contents / 10) % 10); // tens
+	I+2 = contents % 10;
+	
+	program_counter += 2;
+	break;
+
 	// ---- FX55 - Stores V0 to Vx in memory starting at address I
       case 0x0055:
 	char max_reg = opcode & 0x0F00;
