@@ -170,18 +170,31 @@ void parse_instruction(unsigned short opcode)
       break;
 
 
-      // ---- DXYN -
-    case 0xD000:
+      // ---- DXYN - Draw sprite at coordinates (VX, VY)
+    case 0xD000: // CHECK THIS!!!!!!
+      unsigned char vx = reg[(opcode & 0x0F00) >> 8];
+      unsigned char vy = reg[(opcode & 0x00F0) >> 4];
+      draw_sprite(video, vx, vy, chip8);  // questionable arguments if decoupling is desired
+      program_counter += 2;
       break;
 
     case 0xE000:
       // ---- EX9E - Skips the next instruction if the key stored in VX is pressed
       if ((opcode & 0x00FF) == 0x009E) {
+	if (get_key_pressed(input) == reg[(opcode & 0x0F00) >> 8])
+	  program_counter += 4;
+	else
+	  program_counter += 2;
       }
 
       // ---- EXA1 - Skips the next instruction if the key stored in VX isn't pressed
       else if ((opcode & 0x00FF) == 0x00A1) {
-
+	if ((opcode & 0x00FF) == 0x009E) {
+	  if (get_key_pressed(input) != reg[(opcode & 0x0F00) >> 8])
+	    program_counter += 4;
+	  else
+	    program_counter += 2;
+	}
       }
       
     case 0xF000: {
@@ -196,7 +209,7 @@ void parse_instruction(unsigned short opcode)
 
 	// ---- FX0A - A key press is awaited and then stored in VX
       case 0x000A:
-	char key = wait_key_press();
+	char key = wait_key_press(input);
 	reg[(opcode & 0x0F00) >> 8] = key;
 	program_counter += 2;
 	break;
@@ -216,7 +229,7 @@ void parse_instruction(unsigned short opcode)
 
 	// ---- FX1E - Adds VX to I
       case 0x001E:
-	I += reg[opcode & 0x0F00];
+	I += reg[(opcode & 0x0F00) >> 8];
 	program_counter += 2;
 	break;
 
