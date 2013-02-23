@@ -53,10 +53,10 @@ void set_sound_timer(sound_timer* timer, unsigned char sound_for)
   timer->last = SDL_GetTicks();
 }
 
-void update_timer(sound_timer* timer)
+void update_timer(sound_timeyr* timer)
 {
   if (timer->ST > 0) {
-    if ((SDL_GetTicks() - timer->last) > (1000.f / 60.f)) {
+    if ((SDL_GetTicks() - timer->last) > (1000.0f / 60.0f)) {
       timer->ST -= 1;
       timer->last = SDL_GetTicks();
     }
