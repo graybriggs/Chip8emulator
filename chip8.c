@@ -2,6 +2,10 @@
 
 #include "chip8.h"
 
+void chpi8_init(chip8cpu* c8cpu)
+{
+
+}
 
 void parse_instruction(unsigned short opcode)
 {
@@ -268,6 +272,210 @@ void parse_instruction(unsigned short opcode)
 	break;
     }
   
+  }
+}
+
+/* The first 0x1FF areas of memory in the Chip8 are reserved for
+   the interpreter. Part of this memory is used to store the 16
+   characters 0-9, A-F. 
+*/
+
+void init_sprite_data(chip8emu* c8emu)
+{
+  unsigned int mem_offset = 0;
+
+  for (int i = 0; i < 16; ++i) {
+
+    char sprite[8 * 5];
+
+    switch (i) {
+    case 0: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x90;
+      sprite[2] = 0x90;
+      sprite[3] = 0x90;
+      sprite[4] = 0xF0;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case 1: {
+      sprite[0] = 0x20;
+      sprite[1] = 0x60;
+      sprite[2] = 0x20;
+      sprite[3] = 0x20;
+      sprite[4] = 0x70;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case 2: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x10;
+      sprite[2] = 0xF0;
+      sprite[3] = 0x80;
+      sprite[4] = 0xF0;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case 3: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x10;
+      sprite[2] = 0xF0;
+      sprite[3] = 0x10;
+      sprite[4] = 0xF0;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case 4: {
+      sprite[0] = 0x90;
+      sprite[1] = 0x90;
+      sprite[2] = 0xF0;
+      sprite[3] = 0x10;
+      sprite[4] = 0x10;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case 5: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x10;
+      sprite[2] = 0xF0;
+      sprite[3] = 0x10;
+      sprite[4] = 0xF0;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case 6: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x80;
+      sprite[2] = 0xF0;
+      sprite[3] = 0x90;
+      sprite[4] = 0xF0;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case 7: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x10;
+      sprite[2] = 0x20;
+      sprite[3] = 0x40;
+      sprite[4] = 0x40;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case 8: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x90;
+      sprite[2] = 0xF0;
+      sprite[3] = 0x90;
+      sprite[4] = 0xF0;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case 9: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x90;
+      sprite[2] = 0xF0;
+      sprite[3] = 0x10;
+      sprite[4] = 0xF0;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case A: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x90;
+      sprite[2] = 0xF0;
+      sprite[3] = 0x90;
+      sprite[4] = 0x90;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case B: {
+      sprite[0] = 0xE0;
+      sprite[1] = 0x90;
+      sprite[2] = 0xE0;
+      sprite[3] = 0x90;
+      sprite[4] = 0xE0;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case C: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x80;
+      sprite[2] = 0x80;
+      sprite[3] = 0x80;
+      sprite[4] = 0xF0;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case D: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x90;
+      sprite[2] = 0x90;
+      sprite[3] = 0x90;
+      sprite[4] = 0x90;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case E: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x80;
+      sprite[2] = 0xF0;
+      sprite[3] = 0x80;
+      sprite[4] = 0xF0;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }
+    case F: {
+      sprite[0] = 0xF0;
+      sprite[1] = 0x80;
+      sprite[2] = 0xF0;
+      sprite[3] = 0x80;
+      sprite[4] = 0x80;
+    
+      add_to_memory(c8emu, sprite, offset_pos);
+      mem_offset += 8 * 5;
+      break;
+    }      
+    default:
+      break;
+    }
+  }
+}
+
+
+void add_to_memory(chip8emu* e8emu, char* sprite, unsigned int mem_offset_pos)
+{
+  for (int i = 0; i < 8 * 5; ++i) {
+    e8emu->main_memory[mem_offset_position] = sprite[i];
   }
 }
 

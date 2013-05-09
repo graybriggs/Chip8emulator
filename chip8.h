@@ -24,9 +24,11 @@ typedef struct _chip8cpu chip8cpu;
 
 extern void chip8_init(chip8cpu*);
 
-
 extern void parse_instruction(unsigned short);
 
+static void init_sprite_data();
+/* add_to_memory helper function */
+static void add_to_memory(chip8emu*, char*, unsigned int);
 
 
 #endif // CHIP8_H
