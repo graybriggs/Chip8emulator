@@ -15,6 +15,8 @@ void chpi8_init(chip8cpu* c8cpu)
   for (i = 0; i < 0xF; ++i) {
     c8cpu->reg[i] = 0x00;
   }
+
+  init_sprite_data(c8cpu);
 }
 
 void parse_instruction(unsigned short opcode)
