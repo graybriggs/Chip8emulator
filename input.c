@@ -58,6 +58,8 @@ char wait_key_press(input* in)
       case SDLK_f:
 	k_press = 0x0F;
 	break;
+      default:
+	break;
       }
     }
   }
