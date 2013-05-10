@@ -17,7 +17,7 @@ void main_memory_dump(chip8cpu* c8cpu)
 {
   for (int i = 0; i < 4096; i += 16) {
     for (int j = 0; j < 16; ++j) {
-      printf("%X\t%X", i, j);
+      printf("%X\t%X", i + j, c8cpu->main_memory[i + j]);
     }
     printf("\n");
   }
