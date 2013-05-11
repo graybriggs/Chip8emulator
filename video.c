@@ -27,3 +27,22 @@ void draw_sprite(video* v, unsigned char x, unsigned char y)
 		}
 	}
 }
+
+void draw_screen(video* v)
+{
+  SDL_Surface* scr = v->screen;
+
+  if (SDL_MUSTLOCK(scr)) {
+    if (SDL_LockSurface(scr) < 0) {
+      fprintf(stderr, "Failed locking screen surface\n");
+      return;
+    }
+  }
+
+  for (int y = 0; y < 32;  ++y) {
+    for (int x = 0; x < 64 * 8; ++x) {
+      (unsigned int*)scr->pixels[y * (scr->pitch / 4) + x] = 0xFF;
+    }
+  }
+
+}
