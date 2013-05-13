@@ -3,7 +3,7 @@
 #define CHIP8_H
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>a
 #include <time.h>
 
 #include "stack.h"
@@ -29,6 +29,8 @@ extern void parse_instruction(unsigned short);
 static void init_sprite_data(chip8emu*);
 /* add_to_memory helper function */
 static void add_to_memory(chip8emu*, char*, unsigned int);
+
+extern int load_program();
 
 
 #endif // CHIP8_H

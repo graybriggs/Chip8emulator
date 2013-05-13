@@ -495,9 +495,15 @@ void add_to_memory(chip8cpu* chip8, char* sprite, unsigned int mem_offset_pos)
 
 //---------------------
 
-void load_program()
+int load_program()
 {
-  FILE* f = load("program.dat", "r");
-  
+  FILE* f = fopen("program.dat", "r");
+  if (f == NULL) {
+    fprintf(stderr, "Failed to load the program\n");
+    return -1;
+  }
+  fseek(f, 0, SEEK_END);
+  size_t f_size = ftell(f);
+  rewind(f);
 }
 
