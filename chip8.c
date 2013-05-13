@@ -292,7 +292,7 @@ void parse_instruction(unsigned short opcode)
    characters 0-9, A-F. 
 */
 
-void init_sprite_data(chip8emu* c8emu)
+void init_sprite_data(chip8cpu* chip8)
 {
   unsigned int mem_offset = 0;
 
@@ -309,7 +309,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x90;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -320,7 +320,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x20;
       sprite[4] = 0x70;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -331,7 +331,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x80;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8emu, sprite, mem_ofset);
+      add_to_memory(chip8, sprite, mem_ofset);
       mem_offset += 8 * 5;
       break;
     }
@@ -342,7 +342,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x10;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -353,7 +353,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x10;
       sprite[4] = 0x10;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -364,7 +364,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x10;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -375,7 +375,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x90;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -386,7 +386,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x40;
       sprite[4] = 0x40;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -397,7 +397,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x90;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -408,7 +408,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x10;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -419,7 +419,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x90;
       sprite[4] = 0x90;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -430,7 +430,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x90;
       sprite[4] = 0xE0;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -441,7 +441,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x80;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -452,7 +452,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x90;
       sprite[4] = 0x90;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
@@ -474,7 +474,7 @@ void init_sprite_data(chip8emu* c8emu)
       sprite[3] = 0x80;
       sprite[4] = 0x80;
     
-      add_to_memory(c8emu, sprite, mem_offset);
+      add_to_memory(chip8, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }      
@@ -485,10 +485,19 @@ void init_sprite_data(chip8emu* c8emu)
 }
 
 
-void add_to_memory(chip8emu* e8emu, char* sprite, unsigned int mem_offset_pos)
+void add_to_memory(chip8cpu* chip8, char* sprite, unsigned int mem_offset_pos)
 {
   for (int i = 0; i < 8 * 5; ++i) {
-    e8emu->main_memory[mem_offset_position] = sprite[i];
+    chip8->main_memory[mem_offset_position] = sprite[i];
   }
+}
+
+
+//---------------------
+
+void load_program()
+{
+  FILE* f = load("program.dat", "r");
+  
 }
 
