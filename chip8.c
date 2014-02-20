@@ -29,7 +29,7 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
 
       // ---- 00E0 - Clears the screen -----
       if ((opcode & 0x00F0) == 0x00E0) {
-      	//clear_screen(video); LOOK HERE !!!!!!!!!!1
+      	clear_screen(c8cpu->p_video);
       	c8cpu->program_counter += 2;
       }
       // ---- 00EE - returns from subroutine -----
@@ -240,13 +240,13 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
       
         // ---- FX15 - Sets the delay timer to VX
       case 0x0015:
-	set_delay_timer(c8cpu->timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
+	set_delay_timer(&c8cpu->timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
 	c8cpu->program_counter += 2;
 	break;
 	
 	// ---- FX18 - Sets the sound timer to VX
       case 0x0018:
-	set_sound_timer(c8cpu->sound_timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
+	set_sound_timer(&c8cpu->sound_timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
 	c8cpu->program_counter += 2;
 	break;
 
@@ -264,9 +264,9 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
 
   case 0x0033: {
   	char contents = c8cpu->reg[(opcode & 0x0F00) >> 8];
-  	c8cpu->I   = contents / 100;  // hundreds
-  	c8cpu->I+1 = ((contents / 10) % 10); // tens
-  	c8cpu->I+2 = contents % 10;
+  	c8cpu->main_memory[c8cpu->I]     = contents / 100;  // hundreds
+  	c8cpu->main_memory[c8cpu->I + 1] = ((contents / 10) % 10); // tens
+  	c8cpu->main_memory[c8cpu->I + 2] = contents % 10;
   	
   	c8cpu->program_counter += 2;
   	break;
