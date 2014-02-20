@@ -22,14 +22,14 @@ void parse_instruction(unsigned short opcode)
 
       // ---- 00E0 - Clears the screen -----
       if ((opcode & 0x00F0) == 0x00E0) {
-	clear_screen(video);
-	program_counter += 2;
+      	clear_screen(video);
+      	program_counter += 2;
       }
       // ---- 00EE - returns from subroutine -----
       else if((opcode & 0x00FF) == 0x00EE) {
-	program_counter = stack_top(callstack);
-	pop(callstack);
-	program_counter += 2;
+      	program_counter = stack_top(callstack);
+      	pop(callstack);
+      	program_counter += 2;
       }
     }
     
@@ -266,7 +266,7 @@ void parse_instruction(unsigned short opcode)
 	  main_memory[i] = reg[i];
 	}
   */
-  memcpy(main_memory, reg, max_reg);
+  memcpy(main_memory, reg, (size_t)max_reg);
 	program_counter += 2;
 
 	// ---- FX65 - Fills V0 to VX with values from memory starting at address I
@@ -278,7 +278,7 @@ void parse_instruction(unsigned short opcode)
 	  reg[i] = main_memory[I++];
 	}
   */
-  memcpy(reg, main_memory, max_reg);
+  memcpy(reg, main_memory, (size_t)max_reg);
 	program_counter += 2;
 	break;
     }
@@ -296,7 +296,7 @@ void init_sprite_data(chip8cpu* chip8)
   unsigned int mem_offset = 0;
 
   // 16 characters
-  for (int i = 0; i < 16; ++i) {
+  for (size_t i = 0; i < 16; ++i) {
 
     char sprite[8 * 5];
 
@@ -486,7 +486,7 @@ void init_sprite_data(chip8cpu* chip8)
 
 void add_to_memory(chip8cpu* chip8, char* sprite, unsigned int mem_offset_pos)
 {
-  for (int i = 0; i < 8 * 5; ++i) {
+  for (size_t i = 0; i < 8 * 5; ++i) {
     chip8->main_memory[mem_offset_position] = sprite[i];
   }
 }
