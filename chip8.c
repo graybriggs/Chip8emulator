@@ -7,14 +7,8 @@ void chpi8_init(chip8cpu* c8cpu)
   c8cpu->program_counter = 0x00;
   c8cpu->I = 0x00;
   
-  int i;
-  for (i = 0; i < 0x4096; ++i) {
-    c8cpu->main_memory[i] = 0x00;
-  }
-
-  for (i = 0; i < 0xF; ++i) {
-    c8cpu->reg[i] = 0x00;
-  }
+  memset(c8cpu->main_memory, 0x00, 0x4096);
+  memset(c8cpu->reg, 0x00, 0xF);
 
   init_sprite_data(c8cpu);
 }
@@ -267,19 +261,24 @@ void parse_instruction(unsigned short opcode)
 	// ---- FX55 - Stores V0 to Vx in memory starting at address I
       case 0x0055:
 	char max_reg = opcode & 0x0F00;
-
+  /*
 	for (int i = 0; i <= max_reg; i++) {
 	  main_memory[i] = reg[i];
 	}
+  */
+  memcpy(main_memory, reg, max_reg);
 	program_counter += 2;
 
 	// ---- FX65 - Fills V0 to VX with values from memory starting at address I
       case 0x0065:
 	char max_reg = opcode & 0x0F00;
 
+  /*
 	for (int i = 0; <= max_reg; i++) {
 	  reg[i] = main_memory[I++];
 	}
+  */
+  memcpy(reg, main_memory, max_reg);
 	program_counter += 2;
 	break;
     }

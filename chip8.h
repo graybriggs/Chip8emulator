@@ -3,7 +3,8 @@
 #define CHIP8_H
 
 #include <stdio.h>
-#include <stdlib.h>a
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "stack.h"
