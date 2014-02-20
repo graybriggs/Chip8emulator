@@ -4,8 +4,11 @@
 
 void stack_init(stack* s)
 {
+	/*
   for (int i = 0; i < 16; i++)
     s->callstack[i] = 0;
+  */
+  memset(s->callstack, 0, 16);
 
   s->SP = 0;
 }

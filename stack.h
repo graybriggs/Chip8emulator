@@ -6,6 +6,8 @@
 #ifndef STACK_H
 #define STACK_H
 
+#include <string.h>
+
 #define STACK_LEVELS 16
 
 /*
