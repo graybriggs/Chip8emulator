@@ -12,5 +12,6 @@ typedef struct _input input;
 
 extern char wait_key_press(input*);
 
+extern int get_key_pressed(input*);
 
 #endif // INPUT_H

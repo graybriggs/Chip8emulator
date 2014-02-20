@@ -8,8 +8,11 @@
 
 #include <stdio.h>
 
+#include "chip8.h"
 #include "video.h"
 #include "input.h"
+#include "timer.h"
+#include "stack.h"
 
 int main() {
 
@@ -17,7 +20,7 @@ int main() {
   	input input;
 	chip8cpu c8cpu;
 
-	chip8_init(&c8emu);
+	chip8_init(&c8cpu);
 	init_video(&video);
 	chip8_load_resources(&c8cpu, &video, &input);
 

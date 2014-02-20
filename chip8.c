@@ -35,7 +35,7 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
       // ---- 00EE - returns from subroutine -----
       else if((opcode & 0x00FF) == 0x00EE) {
       	c8cpu->program_counter = stack_top(c8cpu->stack);
-      	pop(&c8cpu->stack);
+      	stack_pop(&c8cpu->stack);
       	c8cpu->program_counter += 2;
       }
     }
@@ -141,7 +141,7 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
        // ----- 8XY6 - Shifts VX right by one. VF is set to the value of the LSB of VX before the shift
       case 0x0006:
       	c8cpu->reg[0x000F] = (c8cpu->reg[opcode & 0x0F00] & 0x0001); // set V[F] to LSB
-      	c8cpu->reg[(opcode & 0x0F00) >> 8] >> 1;
+      	c8cpu->reg[(opcode & 0x0F00) >> 8] >>= 1;  // do the actual shift
       	c8cpu->program_counter += 2;
       	break;
 
@@ -152,7 +152,7 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
       // ----- 8XYE - Shifts VX left by one. VF is set to the value of the MSB of VX before the shift
       case 0x000E:
       	c8cpu->reg[0x000F] = (c8cpu->reg[(opcode & 0x0F00) >> 8] & 0x8000);
-      	c8cpu->reg[(opcode & 0x0F00) >> 8] >> 1;
+      	c8cpu->reg[(opcode & 0x0F00) >> 8] >>= 1;  // do the shift
       
 	       break;
       default:
@@ -216,16 +216,16 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
     	  else
     	    c8cpu->program_counter += 2;
         
-	   }
+	     }
       }
       
     case 0xF000: {
 
-      switch(opcode & 0x00FF) {
+      switch (opcode & 0x00FF) {
       
 	// ---- FX07 - Sets VX to the value of the delay timer
       case 0x0007:
-	set_delay_timer(c8cpu->timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
+	set_delay_timer(&c8cpu->timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
 	c8cpu->program_counter += 2;
 	break;
 
@@ -491,7 +491,7 @@ void init_sprite_data(chip8cpu* c8cpu)
 }
 
 
-void add_to_memory(chip8cpu* c8cpu, char* sprite, unsigned int mem_offset_pos)
+static void add_to_memory(chip8cpu* c8cpu, char* sprite, unsigned int mem_offset_pos)
 {
   for (size_t i = 0; i < 8 * 5; ++i) {
     c8cpu->main_memory[mem_offset_pos] = sprite[i];

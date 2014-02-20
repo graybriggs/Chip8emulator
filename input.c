@@ -65,3 +65,18 @@ char wait_key_press(input* in)
   }
   return k_press;
 }
+
+/* 
+ *returns 1 on key press; 0 otherwise
+ */
+int get_key_pressed(input* in) {
+	SDL_Event e = in->event;
+	while(SDL_PollEvent(&e)) {
+		if (e.type == SDL_KEYDOWN) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+

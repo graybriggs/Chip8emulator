@@ -22,7 +22,7 @@ struct _chip8cpu {
   unsigned char reg[16];          // 16 8 bit registers. Register 0xF doubles up as a carry flag
 
 
-  struct _callstack stack;
+  stack stack;
 
   //
   timer timer;
