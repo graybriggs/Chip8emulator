@@ -3,15 +3,15 @@ CC     = gcc
 CFLAGS = -std=c99 -Wall
 LFLAGS = -Wall
 DEBUG  = -g
-LIB    = -lm
+LIB    = -lSDL
 
-OBJS = main.o chip8.o debug.o input.o stack.o timer.o video.o
+OBJS = chip8.o debug.o input.o stack.o timer.o video.o main.o
 
 c8emu : $(OBJS)
-	$(CC) $(LFLAGS) $(OBJS) -c -o c8emu
+	$(CC) $(LFLAGS) $(OBJS) -o c8emu $(LIB)
 
 %.o : %.c
-	$(CC) $(CFLAGS) $<
+	$(CC) $(CFLAGS) -c $<
 
 clean :
 	rm -f *.o
