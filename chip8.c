@@ -210,12 +210,12 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
       // ---- EXA1 - Skips the next instruction if the key stored in VX isn't pressed
       else if ((opcode & 0x00FF) == 0x00A1) {
 	     if ((opcode & 0x00FF) == 0x009E) {
-        /*
-	      if (get_key_pressed(input) != reg[(opcode & 0x0F00) >> 8])  ///INPUT
-    	    program_counter += 4;
+        
+	      if (get_key_pressed(c8cpu->p_input) != c8cpu->reg[(opcode & 0x0F00) >> 8])  ///INPUT
+    	    c8cpu->program_counter += 4;
     	  else
-    	    program_counter += 2;
-        */
+    	    c8cpu->program_counter += 2;
+        
 	   }
       }
       
