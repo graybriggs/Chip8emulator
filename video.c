@@ -35,9 +35,9 @@ void draw_chip8_pixel(video* v, unsigned char on_off)
   for (int h = 0; h < 8; ++h) {
     for (int w = 0; w < 8; ++w) {
       if (on_off)
-	(unsigned int*)scr->pixels[h * (scr->pitch / 4) + w] = 0xFF;
+	     (unsigned int*)scr->pixels[h * (scr->pitch / 4) + w] = 0xFF;
       else
-	(unsigned int*)scr->pixels[h * (scr->pitch / 4) + w] = 0x00;
+	     (unsigned int*)scr->pixels[h * (scr->pitch / 4) + w] = 0x00;
     }
   }
 

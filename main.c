@@ -11,19 +11,18 @@
 #include "video.h"
 #include "input.h"
 
-int main()
-{
-  chip8emulator c8emu;
-  video video;
-  input input;
+int main() {
 
-  unsigned char screen[64 * 32];
+	video video;
+  	input input;
+	chip8cpu c8cpu;
 
-  chip8_init(c8emu);
+	chip8_init(&c8emu);
+	init_video(&video);
+	chip8_load_resources(&c8cpu, &video, &input);
 
-  for (;;) {
+	
 
-  }
 
-  return 0;
+	return 0;
 }

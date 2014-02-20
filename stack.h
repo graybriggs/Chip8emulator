@@ -6,7 +6,7 @@
 #ifndef STACK_H
 #define STACK_H
 
-#include <string.h>
+#include <string.h> // memset
 
 #define STACK_LEVELS 16
 

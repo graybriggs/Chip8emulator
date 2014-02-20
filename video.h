@@ -20,7 +20,7 @@ extern void init_video(video*);
 extern void clear_screen(video*);
 
 // draws sprite at coordiantes x, y.
-extern void draw_sprite(video*, const unsigned char, const unsigned char, const chip8cpu);
+extern void draw_sprite(video*, const unsigned char, const unsigned char);
 
 extern char get_sprite_at(char); // for instruction FX29
 

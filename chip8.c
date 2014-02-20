@@ -2,7 +2,7 @@
 
 #include "chip8.h"
 
-void chpi8_init(chip8cpu* c8cpu)
+void chip8_init(chip8cpu* c8cpu)
 {
   c8cpu->program_counter = 0x00;
   c8cpu->I = 0x00;
@@ -13,7 +13,14 @@ void chpi8_init(chip8cpu* c8cpu)
   init_sprite_data(c8cpu);
 }
 
-void parse_instruction(unsigned short opcode)
+
+void chip8_load_resources(chip8cpu* c8cpu, video* v, input* in) {
+
+  c8cpu->p_video = v;
+  c8cpu->p_input = in;
+}
+
+void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
 {
     switch(opcode & 0xF000) {
       // ignored
@@ -22,64 +29,64 @@ void parse_instruction(unsigned short opcode)
 
       // ---- 00E0 - Clears the screen -----
       if ((opcode & 0x00F0) == 0x00E0) {
-      	clear_screen(video);
-      	program_counter += 2;
+      	//clear_screen(video); LOOK HERE !!!!!!!!!!1
+      	c8cpu->program_counter += 2;
       }
       // ---- 00EE - returns from subroutine -----
       else if((opcode & 0x00FF) == 0x00EE) {
-      	program_counter = stack_top(callstack);
-      	pop(callstack);
-      	program_counter += 2;
+      	c8cpu->program_counter = stack_top(c8cpu->stack);
+      	pop(&c8cpu->stack);
+      	c8cpu->program_counter += 2;
       }
     }
     
       // ---- 1NNN - Jumps to address NNN
     case 0x1000:
-      program_counter = opcode & 0x0FFF;
-      program_coutner += 2;
+      c8cpu->program_counter = opcode & 0x0FFF;
+      c8cpu->program_counter += 2;
       break;
     
     // ---- 2NNN - call subroutine at NNN
     case 0x2000:
-      stack_push(callstack, program_counter);
-      program_counter = opcode & 0x0FFF;
+      stack_push(&c8cpu->stack, c8cpu->program_counter);
+      c8cpu->program_counter = opcode & 0x0FFF;
       break;
 
       // ---- 3XNN - Skips the next instruction if VX equals NN
     case 0x3000:
-      if (reg[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))
-	program_counter += 4;
+      if (c8cpu->reg[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))
+	     c8cpu->program_counter += 4;
       else
-	program_counter += 2;
+	     c8cpu->program_counter += 2;
       break;
 
       // ---- 4XNN - Skips the next instruction if VX doesn't erqual NN
     case 0x4000:
-      if (reg[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF))
-	program_counter += 4;
+      if (c8cpu->reg[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF))
+	     c8cpu->program_counter += 4;
       else
-	program_counter += 2;
+	     c8cpu->program_counter += 2;
 
       break;
 
       // ---- 5XY0 - Skips the next instruction if VX equals VY
     case 0x5000:
-      if (reg[(opcode & 0x0F00) >> 8] == reg[(opcode & 0x00F0) >> 4])
-	program_counter += 4;
+      if (c8cpu->reg[(opcode & 0x0F00) >> 8] == c8cpu->reg[(opcode & 0x00F0) >> 4])
+	     c8cpu->program_counter += 4;
       else
-	program_counter += 2;
+	     c8cpu->program_counter += 2;
       break;
 
     // ---- 6XNN - Set VX to NN
     case 0x6000:
-      reg[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
-      program_counter += 2;
+      c8cpu->reg[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
+      c8cpu->program_counter += 2;
       break;
 
       // ---- 7XNN - Adds NN to VX
     case 0x7000:
-      reg[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
-      program_counter += 2;
+      c8cpu->reg[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
+      c8cpu->program_counter += 2;
       break;
 
     case 0x8000: {
@@ -87,124 +94,130 @@ void parse_instruction(unsigned short opcode)
      
 	// ---- 8XY0 - Sets VX to the value of VY
       case 0x0000:
-	reg[(opcode & 0x0F00) >> 8] = reg[(opcode & 0x00F0) >> 4];
-	program_counter += 2;
-	break;
+	     c8cpu->reg[(opcode & 0x0F00) >> 8] = c8cpu->reg[(opcode & 0x00F0) >> 4];
+	     c8cpu->program_counter += 2;
+	     break;
 
 	// ----- 8XY1 - Sets VX to VX | VY
       case 0x0001:
-	reg[(opcode & 0x0F00) >> 8] |= reg[(opcode & 0x00F0) >> 4];
-	program_counter += 2;
-	break;
+      	c8cpu->reg[(opcode & 0x0F00) >> 8] |= c8cpu->reg[(opcode & 0x00F0) >> 4];
+      	c8cpu->program_counter += 2;
+      	break;
 
 	// ----- 8XY2 - Sets VX to VX & VY
       case 0x0002:
-	reg[(opcode & 0x0F00) >> 8] &= reg[(opcode & 0x00F0) >> 4];
-	program_counter += 2;
+      	c8cpu->reg[(opcode & 0x0F00) >> 8] &= c8cpu->reg[(opcode & 0x00F0) >> 4];
+      	c8cpu->program_counter += 2;
         break;
 
 	// ----- 8XY3 - Sets VX to VX ^ VY
       case 0x0003:
-	reg[(opcode & 0x0F00) >> 8] ^= reg[(opcode & 0x00F0) >> 4];
-	program_counter += 2;
+      	c8cpu->reg[(opcode & 0x0F00) >> 8] ^= c8cpu->reg[(opcode & 0x00F0) >> 4];
+      	c8cpu->program_counter += 2;
         break;
 
 	// ----- 8XY4 ------
 	// Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
       case 0x0004:
-	reg[opcode & 0x00F0] += reg[opcode & 0x0F00];
-	if ((opcode & 0x0F00) + (opcode & 0x00F0) > 0xFF)
-	  reg[0x000F] = 0x1;
-	else
-	  reg[0x000F] = 0x0;
-	break;
+      	c8cpu->reg[opcode & 0x00F0] += c8cpu->reg[opcode & 0x0F00];
+      	if ((opcode & 0x0F00) + (opcode & 0x00F0) > 0xFF)
+      	  c8cpu->reg[0x000F] = 0x1;
+      	else
+      	  c8cpu->reg[0x000F] = 0x0;
+      	break;
 
 	// ----- 8XY5 - VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
       case 0x0005:
-	unsigned short vx = reg[(opcode & 0x0F00) >> 8]; 
-	unsigned short vy = reg[(opcode & 0x00F0) >> 4];
+      	unsigned short vx = c8cpu->reg[(opcode & 0x0F00) >> 8]; 
+      	unsigned short vy = c8cpu->reg[(opcode & 0x00F0) >> 4];
 
-	if (vy - vx < 0x0000)
-	  reg[0x000F] = 0x0001;
+      	if (vy - vx < 0x0000)
+      	  c8cpu->reg[0x000F] = 0x0001;
 
-	reg[vx] -= reg[vx];
-	program_counter += 2;
-	break;
+      	c8cpu->reg[vx] -= c8cpu->reg[vx];
+      	c8cpu->program_counter += 2;
+      	break;
 
        // ----- 8XY6 - Shifts VX right by one. VF is set to the value of the LSB of VX before the shift
       case 0x0006:
-	reg[0x000F] = (reg[opcode & 0x0F00] & 0x0001); // set V[F] to LSB
-	reg[(opcode & 0x0F00) >> 8] >> 1;
-	program_counter += 2;
-	break;
+      	c8cpu->reg[0x000F] = (c8cpu->reg[opcode & 0x0F00] & 0x0001); // set V[F] to LSB
+      	c8cpu->reg[(opcode & 0x0F00) >> 8] >> 1;
+      	c8cpu->program_counter += 2;
+      	break;
 
       // ----- 8XY7 -----
       case 0x0007:
-	break;
+      	break;
 
       // ----- 8XYE - Shifts VX left by one. VF is set to the value of the MSB of VX before the shift
       case 0x000E:
-	reg[0x000F] = (reg[(opcode & 0x0F00) >> 8] & 0x8000);
-	reg[(opcode & 0x0F00) >> 8] >> 1;
+      	c8cpu->reg[0x000F] = (c8cpu->reg[(opcode & 0x0F00) >> 8] & 0x8000);
+      	c8cpu->reg[(opcode & 0x0F00) >> 8] >> 1;
       
-	break;
+	       break;
       default:
-	  break;
+	     break;
 
       }
     }
 
       // ---- 9XY0 - Skips the next instruction of VX doesn't equal VY
     case 0x9000:
-      if (reg[(opcode & 0x0F00) >> 8] != reg[(opcode & 0x00F0) >> 4])
-	program_counter += 4;
+      if (c8cpu->reg[(opcode & 0x0F00) >> 8] != c8cpu->reg[(opcode & 0x00F0) >> 4])
+	     c8cpu->program_counter += 4;
       else
-	program_counter += 2;
+	     c8cpu->program_counter += 2;
       break;
 
       // ---- ANNN - Sets I to the address NNN
     case 0xA000:
-      I = (opcode & 0x0FFF);
-      program_counter += 2;
+      c8cpu->I = (opcode & 0x0FFF);
+      c8cpu->program_counter += 2;
       break;
 
       // ---- BNNN - Jumps to the address NNN plus V0
     case 0xB000:
-      program_counter = (opcode & 0x0FFF) + reg[0x0000];
+      c8cpu->program_counter = (opcode & 0x0FFF) + c8cpu->reg[0x0000];
       break;
 
       // ---- CXNN - Sets VX to a random number and NN
     case 0xC000:
-      reg[(opcode & 0x0F00) >> 8] = rand() & (opcode & 0x00FF)
-	program_counter += 2;
+      c8cpu->reg[(opcode & 0x0F00) >> 8] = rand() & (opcode & 0x00FF);
+	     c8cpu->program_counter += 2;
       break;
 
 
       // ---- DXYN - Draw sprite at coordinates (VX, VY)
     case 0xD000: // CHECK THIS!!!!!!
-      unsigned char vx = reg[(opcode & 0x0F00) >> 8];
-      unsigned char vy = reg[(opcode & 0x00F0) >> 4];
-      draw_sprite(video, vx, vy, chip8);  // questionable arguments if decoupling is desired
-      program_counter += 2;
+      unsigned char vx;
+      unsigned char vy;
+      vx = c8cpu->reg[(opcode & 0x0F00) >> 8];
+      vy = c8cpu->reg[(opcode & 0x00F0) >> 4];
+//!!!!!//draw_sprite(video, vx, vy, c8cpu);  // questionable arguments if decoupling is desired
+      c8cpu->program_counter += 2;
       break;
 
     case 0xE000:
       // ---- EX9E - Skips the next instruction if the key stored in VX is pressed
       if ((opcode & 0x00FF) == 0x009E) {
-	if (get_key_pressed(input) == reg[(opcode & 0x0F00) >> 8])
-	  program_counter += 4;
-	else
-	  program_counter += 2;
+      
+      	if (get_key_pressed(c8cpu->p_input) == c8cpu->reg[(opcode & 0x0F00) >> 8])
+      	  c8cpu->program_counter += 4;
+      	else
+      	  c8cpu->program_counter += 2;
+      
       }
 
       // ---- EXA1 - Skips the next instruction if the key stored in VX isn't pressed
       else if ((opcode & 0x00FF) == 0x00A1) {
-	if ((opcode & 0x00FF) == 0x009E) {
-	  if (get_key_pressed(input) != reg[(opcode & 0x0F00) >> 8])
-	    program_counter += 4;
-	  else
-	    program_counter += 2;
-	}
+	     if ((opcode & 0x00FF) == 0x009E) {
+        /*
+	      if (get_key_pressed(input) != reg[(opcode & 0x0F00) >> 8])  ///INPUT
+    	    program_counter += 4;
+    	  else
+    	    program_counter += 2;
+        */
+	   }
       }
       
     case 0xF000: {
@@ -213,73 +226,64 @@ void parse_instruction(unsigned short opcode)
       
 	// ---- FX07 - Sets VX to the value of the delay timer
       case 0x0007:
-	set_delay_timer(timer, reg[(opcode & 0x0F00) >> 8]);
-	program_counter += 2;
+	set_delay_timer(c8cpu->timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
+	c8cpu->program_counter += 2;
 	break;
 
 	// ---- FX0A - A key press is awaited and then stored in VX
       case 0x000A:
-	char key = wait_key_press(input);
-	reg[(opcode & 0x0F00) >> 8] = key;
-	program_counter += 2;
+	char key = wait_key_press(c8cpu->p_input);  /// INPUT
+	c8cpu->reg[(opcode & 0x0F00) >> 8] = key;
+	c8cpu->program_counter += 2;
 	break;
       }
       
         // ---- FX15 - Sets the delay timer to VX
       case 0x0015:
-	set_delay_timer(reg[(opcode & 0x0F00) >> 8]);
-	program_counter += 2;
+	set_delay_timer(c8cpu->timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
+	c8cpu->program_counter += 2;
 	break;
 	
 	// ---- FX18 - Sets the sound timer to VX
       case 0x0018:
-	set_sound_timer(reg[(opcode & 0x0F00) >> 8]);
-	program_counter += 2;
+	set_sound_timer(c8cpu->sound_timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
+	c8cpu->program_counter += 2;
 	break;
 
 	// ---- FX1E - Adds VX to I
       case 0x001E:
-	I += reg[(opcode & 0x0F00) >> 8];
-	program_counter += 2;
+	c8cpu->I += c8cpu->reg[(opcode & 0x0F00) >> 8];
+	c8cpu->program_counter += 2;
 	break;
 
 	// ---- FX29 - Sets I to the location of the sprite for the character in VX. Character 0-F (in hex) are represented by 4x5 font.
       case 0x0029:
-	I = get_sprite_at(reg[(opcode & 0x0F00) >> 8]);
-	program_counter += 2;
+	c8cpu->I = get_sprite_at(c8cpu->reg[(opcode & 0x0F00) >> 8]);
+	c8cpu->program_counter += 2;
 	break;
 
       case 0x0033:
-	char contents = reg[(opcode & 0x0F00) >> 8];
-	I   = contents / 100;  // hundreds
-	I+1 = ((contents / 10) % 10); // tens
-	I+2 = contents % 10;
+	char contents = c8cpu->reg[(opcode & 0x0F00) >> 8];
+	c8cpu->I   = contents / 100;  // hundreds
+	c8cpu->I+1 = ((contents / 10) % 10); // tens
+	c8cpu->I+2 = contents % 10;
 	
-	program_counter += 2;
+	c8cpu->program_counter += 2;
 	break;
 
 	// ---- FX55 - Stores V0 to Vx in memory starting at address I
       case 0x0055:
-	char max_reg = opcode & 0x0F00;
-  /*
-	for (int i = 0; i <= max_reg; i++) {
-	  main_memory[i] = reg[i];
-	}
-  */
-  memcpy(main_memory, reg, (size_t)max_reg);
-	program_counter += 2;
+	char max_reg55 = (char)opcode & 0x0F00;
+
+  memcpy(c8cpu->main_memory, c8cpu->reg, (size_t)max_reg55);
+	c8cpu->program_counter += 2;
 
 	// ---- FX65 - Fills V0 to VX with values from memory starting at address I
       case 0x0065:
-	char max_reg = opcode & 0x0F00;
+	char max_reg65 = (char)opcode & 0x0F00;
 
-  /*
-	for (int i = 0; <= max_reg; i++) {
-	  reg[i] = main_memory[I++];
-	}
-  */
-  memcpy(reg, main_memory, (size_t)max_reg);
-	program_counter += 2;
+  memcpy(c8cpu->reg, c8cpu->main_memory, (size_t)max_reg65);
+	c8cpu->program_counter += 2;
 	break;
     }
   
@@ -291,7 +295,7 @@ void parse_instruction(unsigned short opcode)
    characters 0-9, A-F. 
 */
 
-void init_sprite_data(chip8cpu* chip8)
+void init_sprite_data(chip8cpu* c8cpu)
 {
   unsigned int mem_offset = 0;
 
@@ -301,179 +305,179 @@ void init_sprite_data(chip8cpu* chip8)
     char sprite[8 * 5];
 
     switch (i) {
-    case 0: {
+    case 0x00: {
       sprite[0] = 0xF0;
       sprite[1] = 0x90;
       sprite[2] = 0x90;
       sprite[3] = 0x90;
       sprite[4] = 0xF0;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case 1: {
+    case 0x01: {
       sprite[0] = 0x20;
       sprite[1] = 0x60;
       sprite[2] = 0x20;
       sprite[3] = 0x20;
       sprite[4] = 0x70;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case 2: {
+    case 0x02: {
       sprite[0] = 0xF0;
       sprite[1] = 0x10;
       sprite[2] = 0xF0;
       sprite[3] = 0x80;
       sprite[4] = 0xF0;
     
-      add_to_memory(chip8, sprite, mem_ofset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case 3: {
+    case 0x03: {
       sprite[0] = 0xF0;
       sprite[1] = 0x10;
       sprite[2] = 0xF0;
       sprite[3] = 0x10;
       sprite[4] = 0xF0;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case 4: {
+    case 0x04: {
       sprite[0] = 0x90;
       sprite[1] = 0x90;
       sprite[2] = 0xF0;
       sprite[3] = 0x10;
       sprite[4] = 0x10;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case 5: {
+    case 0x05: {
       sprite[0] = 0xF0;
       sprite[1] = 0x10;
       sprite[2] = 0xF0;
       sprite[3] = 0x10;
       sprite[4] = 0xF0;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case 6: {
+    case 0x06: {
       sprite[0] = 0xF0;
       sprite[1] = 0x80;
       sprite[2] = 0xF0;
       sprite[3] = 0x90;
       sprite[4] = 0xF0;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case 7: {
+    case 0x07: {
       sprite[0] = 0xF0;
       sprite[1] = 0x10;
       sprite[2] = 0x20;
       sprite[3] = 0x40;
       sprite[4] = 0x40;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case 8: {
+    case 0x08: {
       sprite[0] = 0xF0;
       sprite[1] = 0x90;
       sprite[2] = 0xF0;
       sprite[3] = 0x90;
       sprite[4] = 0xF0;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case 9: {
+    case 0x09: {
       sprite[0] = 0xF0;
       sprite[1] = 0x90;
       sprite[2] = 0xF0;
       sprite[3] = 0x10;
       sprite[4] = 0xF0;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case A: {
+    case 0x0A: {
       sprite[0] = 0xF0;
       sprite[1] = 0x90;
       sprite[2] = 0xF0;
       sprite[3] = 0x90;
       sprite[4] = 0x90;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case B: {
+    case 0x0B: {
       sprite[0] = 0xE0;
       sprite[1] = 0x90;
       sprite[2] = 0xE0;
       sprite[3] = 0x90;
       sprite[4] = 0xE0;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case C: {
+    case 0x0C: {
       sprite[0] = 0xF0;
       sprite[1] = 0x80;
       sprite[2] = 0x80;
       sprite[3] = 0x80;
       sprite[4] = 0xF0;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case D: {
+    case 0x0D: {
       sprite[0] = 0xF0;
       sprite[1] = 0x90;
       sprite[2] = 0x90;
       sprite[3] = 0x90;
       sprite[4] = 0x90;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case E: {
+    case 0x0E: {
       sprite[0] = 0xF0;
       sprite[1] = 0x80;
       sprite[2] = 0xF0;
       sprite[3] = 0x80;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8emu, sprite, mem_offet);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }
-    case F: {
+    case 0x0F: {
       sprite[0] = 0xF0;
       sprite[1] = 0x80;
       sprite[2] = 0xF0;
       sprite[3] = 0x80;
       sprite[4] = 0x80;
     
-      add_to_memory(chip8, sprite, mem_offset);
+      add_to_memory(c8cpu, sprite, mem_offset);
       mem_offset += 8 * 5;
       break;
     }      
@@ -484,10 +488,10 @@ void init_sprite_data(chip8cpu* chip8)
 }
 
 
-void add_to_memory(chip8cpu* chip8, char* sprite, unsigned int mem_offset_pos)
+void add_to_memory(chip8cpu* c8cpu, char* sprite, unsigned int mem_offset_pos)
 {
   for (size_t i = 0; i < 8 * 5; ++i) {
-    chip8->main_memory[mem_offset_position] = sprite[i];
+    c8cpu->main_memory[mem_offset_pos] = sprite[i];
   }
 }
 
