@@ -127,7 +127,7 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
       	break;
 
 	// ----- 8XY5 - VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
-      case 0x0005:
+      case 0x0005: {
       	unsigned short vx = c8cpu->reg[(opcode & 0x0F00) >> 8]; 
       	unsigned short vy = c8cpu->reg[(opcode & 0x00F0) >> 4];
 
@@ -137,7 +137,7 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
       	c8cpu->reg[vx] -= c8cpu->reg[vx];
       	c8cpu->program_counter += 2;
       	break;
-
+      }
        // ----- 8XY6 - Shifts VX right by one. VF is set to the value of the LSB of VX before the shift
       case 0x0006:
       	c8cpu->reg[0x000F] = (c8cpu->reg[opcode & 0x0F00] & 0x0001); // set V[F] to LSB
@@ -188,15 +188,14 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
 
 
       // ---- DXYN - Draw sprite at coordinates (VX, VY)
-    case 0xD000: // CHECK THIS!!!!!!
-      unsigned char vx;
-      unsigned char vy;
-      vx = c8cpu->reg[(opcode & 0x0F00) >> 8];
-      vy = c8cpu->reg[(opcode & 0x00F0) >> 4];
-//!!!!!//draw_sprite(video, vx, vy, c8cpu);  // questionable arguments if decoupling is desired
+    case 0xD000: {// CHECK THIS!!!!!! 
+      // braces for variable scope
+      unsigned char vx = c8cpu->reg[(opcode & 0x0F00) >> 8];
+      unsigned char vy = c8cpu->reg[(opcode & 0x00F0) >> 4];
+      draw_sprite(c8cpu->p_video, vx, vy);  // questionable arguments if decoupling is desired
       c8cpu->program_counter += 2;
       break;
-
+    }
     case 0xE000:
       // ---- EX9E - Skips the next instruction if the key stored in VX is pressed
       if ((opcode & 0x00FF) == 0x009E) {
@@ -231,11 +230,12 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
 	break;
 
 	// ---- FX0A - A key press is awaited and then stored in VX
-      case 0x000A:
-	char key = wait_key_press(c8cpu->p_input);  /// INPUT
-	c8cpu->reg[(opcode & 0x0F00) >> 8] = key;
-	c8cpu->program_counter += 2;
-	break;
+      case 0x000A: {
+    	char key = wait_key_press(c8cpu->p_input);  /// INPUT
+    	c8cpu->reg[(opcode & 0x0F00) >> 8] = key;
+    	c8cpu->program_counter += 2;
+    	break;
+      }
       }
       
         // ---- FX15 - Sets the delay timer to VX
@@ -262,29 +262,32 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
 	c8cpu->program_counter += 2;
 	break;
 
-      case 0x0033:
-	char contents = c8cpu->reg[(opcode & 0x0F00) >> 8];
-	c8cpu->I   = contents / 100;  // hundreds
-	c8cpu->I+1 = ((contents / 10) % 10); // tens
-	c8cpu->I+2 = contents % 10;
-	
-	c8cpu->program_counter += 2;
-	break;
+  case 0x0033: {
+  	char contents = c8cpu->reg[(opcode & 0x0F00) >> 8];
+  	c8cpu->I   = contents / 100;  // hundreds
+  	c8cpu->I+1 = ((contents / 10) % 10); // tens
+  	c8cpu->I+2 = contents % 10;
+  	
+  	c8cpu->program_counter += 2;
+  	break;
+  }
 
 	// ---- FX55 - Stores V0 to Vx in memory starting at address I
-      case 0x0055:
-	char max_reg55 = (char)opcode & 0x0F00;
+  case 0x0055: {
+  	char max_reg55 = (char)opcode & 0x0F00;
 
-  memcpy(c8cpu->main_memory, c8cpu->reg, (size_t)max_reg55);
-	c8cpu->program_counter += 2;
-
+    memcpy(c8cpu->main_memory, c8cpu->reg, (size_t)max_reg55);
+  	c8cpu->program_counter += 2;
+    break;
+  }
 	// ---- FX65 - Fills V0 to VX with values from memory starting at address I
-      case 0x0065:
-	char max_reg65 = (char)opcode & 0x0F00;
+      case 0x0065: {
+	   char max_reg65 = (char)opcode & 0x0F00;
 
-  memcpy(c8cpu->reg, c8cpu->main_memory, (size_t)max_reg65);
-	c8cpu->program_counter += 2;
-	break;
+      memcpy(c8cpu->reg, c8cpu->main_memory, (size_t)max_reg65);
+    	c8cpu->program_counter += 2;
+    	break;
+      }
     }
   
   }
