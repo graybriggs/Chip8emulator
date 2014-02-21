@@ -194,12 +194,18 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
       break;
 
 
-      // ---- DXYN - Draw sprite at coordinates (VX, VY)
+      // ---- DXYN - Draw sprite from memory location at coordinates (VX, VY)
     case 0xD000: {// CHECK THIS!!!!!! 
       // braces for variable scope
+
+      // I is assumed to be pointing at specific memory location
+      // that contains a sprite
+
+      // copy 5 bytes of 
+
       unsigned char vx = c8cpu->reg[(opcode & 0x0F00) >> 8];
       unsigned char vy = c8cpu->reg[(opcode & 0x00F0) >> 4];
-      draw_sprite(c8cpu->p_video, vx, vy);  // questionable arguments if decoupling is desired
+      draw_sprite(c8cpu->p_video, vx, vy); 
       c8cpu->program_counter += 2;
       break;
     }
@@ -314,12 +320,12 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
 
 void init_sprite_data(chip8cpu* c8cpu)
 {
-  unsigned int mem_offset = 0;
+  unsigned short mem_offset = 0;
 
   // 16 characters
   for (size_t i = 0; i < 16; ++i) {
 
-    char sprite[8 * 5];
+    char sprite[5];
 
     switch (i) {
     case 0x00: {
@@ -329,8 +335,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x90;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x01: {
@@ -340,8 +348,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x20;
       sprite[4] = 0x70;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x02: {
@@ -351,8 +361,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x80;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      } 
       break;
     }
     case 0x03: {
@@ -362,8 +374,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x10;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x04: {
@@ -373,8 +387,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x10;
       sprite[4] = 0x10;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x05: {
@@ -384,8 +400,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x10;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x06: {
@@ -395,8 +413,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x90;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x07: {
@@ -406,8 +426,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x40;
       sprite[4] = 0x40;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x08: {
@@ -417,8 +439,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x90;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x09: {
@@ -428,8 +452,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x10;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x0A: {
@@ -439,8 +465,9 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x90;
       sprite[4] = 0x90;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x0B: {
@@ -450,8 +477,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x90;
       sprite[4] = 0xE0;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x0C: {
@@ -461,8 +490,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x80;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x0D: {
@@ -472,8 +503,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x90;
       sprite[4] = 0x90;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x0E: {
@@ -483,8 +516,10 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x80;
       sprite[4] = 0xF0;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }
     case 0x0F: {
@@ -494,8 +529,9 @@ void init_sprite_data(chip8cpu* c8cpu)
       sprite[3] = 0x80;
       sprite[4] = 0x80;
     
-      add_to_memory(c8cpu, sprite, mem_offset);
-      mem_offset += 8 * 5;
+      for (size_t i = 0; i < 5; ++i) {
+        c8cpu->main_memory[mem_offset++] = sprite[i];
+      }
       break;
     }      
     default:
@@ -505,10 +541,11 @@ void init_sprite_data(chip8cpu* c8cpu)
 }
 
 
-static void add_to_memory(chip8cpu* c8cpu, char* sprite, unsigned int mem_offset_pos)
+static void add_to_memory(chip8cpu* c8cpu, char* sprite, unsigned short mem_offset_pos)
 {
-  for (size_t i = 0; i < 8 * 5; ++i) {
-    c8cpu->main_memory[mem_offset_pos] = sprite[i];
+  // 5 bytes of memory
+  for (size_t i = 0; i < 5; ++i) {
+    c8cpu->main_memory[mem_offset_pos += 1] = sprite[i];
   }
 }
 

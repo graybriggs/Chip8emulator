@@ -48,7 +48,7 @@ extern void parse_instruction(chip8cpu*, unsigned short);
 
 static void init_sprite_data(chip8cpu*);
 /* add_to_memory helper function */
-static void add_to_memory(chip8cpu*, char*, unsigned int);
+static void add_to_memory(chip8cpu*, char*, unsigned short);
 
 extern int load_program(chip8cpu*);
 
