@@ -3,7 +3,7 @@
 
 void print_chip8_state(chip8cpu* c8cpu)
 {
-  printf("Dump state of CPU registers\n");
+  printf("\n\n===== Dump state of CPU registers =====\n");
   printf("Program Counter -        %X\n", c8cpu->program_counter);
   printf("Memory address pointer - %X\n", c8cpu->I);
   printf("Registers :- \n");
@@ -15,9 +15,10 @@ void print_chip8_state(chip8cpu* c8cpu)
 
 void main_memory_dump(chip8cpu* c8cpu)
 {
-  for (int i = 0; i < 4096; i += 16) {
-    for (int j = 0; j < 16; ++j) {
-      printf("%X\t%X", i + j, c8cpu->main_memory[i + j]);
+  printf("\n\n===== Main Memory Dump =====\n");
+  for (int i = 0; i < 4095; i += 16) {
+    for (int j = 0; j < 15; ++j) {
+      printf("%X[%X]\t", i + j, c8cpu->main_memory[i + j]);
     }
     printf("\n");
   }
@@ -25,9 +26,9 @@ void main_memory_dump(chip8cpu* c8cpu)
 
 void print_stack_trace(stack* stack)
 {
-  printf("Stack Pointer - %X\n\n", stack->SP);
+  printf("\n\nStack Pointer - %X\n\n", stack->SP);
   
   for (int i = 0; i < STACK_LEVELS; i++) {
-    printf("%d - %X\n", stack->callstack[i]);
+    printf("%hd - %X\n", stack->callstack[i]);
   }
 }

@@ -79,4 +79,13 @@ int get_key_pressed(input* in) {
 	return 0;
 }
 
+int check_for_exit(input* in) {
 
+	SDL_Event e;
+
+	while (SDL_PollEvent(&e)) {
+		if (e.type == SDL_QUIT)
+			return 1;
+	}
+	return 0;
+}

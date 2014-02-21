@@ -14,4 +14,6 @@ extern char wait_key_press(input*);
 
 extern int get_key_pressed(input*);
 
+extern int check_for_exit(input*);
+
 #endif // INPUT_H

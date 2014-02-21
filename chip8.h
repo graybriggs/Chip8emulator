@@ -41,6 +41,7 @@ typedef struct _chip8cpu chip8cpu;
 
 extern void chip8_init(chip8cpu*);
 
+// assigns video and input to chip8 internal pointers
 extern void chip8_load_resources(chip8cpu*, video*, input*);
 
 extern void parse_instruction(chip8cpu*, unsigned short);

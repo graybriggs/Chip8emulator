@@ -7,8 +7,10 @@ void chip8_init(chip8cpu* c8cpu)
   c8cpu->program_counter = 0x00;
   c8cpu->I = 0x00;
   
-  memset(c8cpu->main_memory, 0x00, 0x4096);
-  memset(c8cpu->reg, 0x00, 0xF);
+  stack_init(&c8cpu->stack);
+
+  memset(c8cpu->main_memory, 0x00, 4096);
+  memset(c8cpu->reg, 0x00, 16);
 
   init_sprite_data(c8cpu);
 }
@@ -90,7 +92,7 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
       break;
 
     case 0x8000: {
-      switch (opcode | 0x000F) {
+      switch (opcode & 0x000F) {
      
 	// ---- 8XY0 - Sets VX to the value of VY
       case 0x0000:
@@ -128,13 +130,18 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
 
 	// ----- 8XY5 - VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
       case 0x0005: {
-      	unsigned short vx = c8cpu->reg[(opcode & 0x0F00) >> 8]; 
-      	unsigned short vy = c8cpu->reg[(opcode & 0x00F0) >> 4];
+        // extract registers
+        unsigned char rx = (opcode & 0x0F00) >> 8;
+        unsigned char ry = (opcode & 0x00F0) >> 4;
+        // get register's values
+      	unsigned char vx = c8cpu->reg[rx]; 
+      	unsigned char vy = c8cpu->reg[ry];
 
-      	if (vy - vx < 0x0000)
-      	  c8cpu->reg[0x000F] = 0x0001;
+        // if borrow set register 16 to 1
+      	if (vx - vy < 0)
+      	  c8cpu->reg[15] = 0x01;
 
-      	c8cpu->reg[vx] -= c8cpu->reg[vx];
+      	c8cpu->reg[rx] = c8cpu->reg[rx] - c8cpu->reg[ry];
       	c8cpu->program_counter += 2;
       	break;
       }
@@ -220,76 +227,83 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
       }
       
     case 0xF000: {
-
+      printf("hi? %X\n",opcode);
       switch (opcode & 0x00FF) {
-      
+
+        printf("now: %X\n", opcode & 0x00FF);
+
 	// ---- FX07 - Sets VX to the value of the delay timer
       case 0x0007:
-	set_delay_timer(&c8cpu->timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
-	c8cpu->program_counter += 2;
-	break;
+      	set_delay_timer(&c8cpu->timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
+      	c8cpu->program_counter += 2;
+      	break;
 
 	// ---- FX0A - A key press is awaited and then stored in VX
       case 0x000A: {
-    	char key = wait_key_press(c8cpu->p_input);  /// INPUT
-    	c8cpu->reg[(opcode & 0x0F00) >> 8] = key;
-    	c8cpu->program_counter += 2;
-    	break;
+        char key = wait_key_press(c8cpu->p_input);  /// INPUT
+      	c8cpu->reg[(opcode & 0x0F00) >> 8] = key;
+      	c8cpu->program_counter += 2;
+      	break;
       }
-      }
+      
       
         // ---- FX15 - Sets the delay timer to VX
       case 0x0015:
-	set_delay_timer(&c8cpu->timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
-	c8cpu->program_counter += 2;
-	break;
+      	set_delay_timer(&c8cpu->timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
+      	c8cpu->program_counter += 2;
+      	break;
 	
 	// ---- FX18 - Sets the sound timer to VX
       case 0x0018:
-	set_sound_timer(&c8cpu->sound_timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
-	c8cpu->program_counter += 2;
-	break;
+      	set_sound_timer(&c8cpu->sound_timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
+      	c8cpu->program_counter += 2;
+      	break;
 
 	// ---- FX1E - Adds VX to I
       case 0x001E:
-	c8cpu->I += c8cpu->reg[(opcode & 0x0F00) >> 8];
-	c8cpu->program_counter += 2;
-	break;
+      	c8cpu->I += c8cpu->reg[(opcode & 0x0F00) >> 8];
+      	c8cpu->program_counter += 2;
+      	break;
 
 	// ---- FX29 - Sets I to the location of the sprite for the character in VX. Character 0-F (in hex) are represented by 4x5 font.
       case 0x0029:
-	c8cpu->I = get_sprite_at(c8cpu->reg[(opcode & 0x0F00) >> 8]);
-	c8cpu->program_counter += 2;
-	break;
+      	c8cpu->I = get_sprite_at(c8cpu->reg[(opcode & 0x0F00) >> 8]);
+      	c8cpu->program_counter += 2;
+      	break;
 
-  case 0x0033: {
-  	char contents = c8cpu->reg[(opcode & 0x0F00) >> 8];
-  	c8cpu->main_memory[c8cpu->I]     = contents / 100;  // hundreds
-  	c8cpu->main_memory[c8cpu->I + 1] = ((contents / 10) % 10); // tens
-  	c8cpu->main_memory[c8cpu->I + 2] = contents % 10;
-  	
-  	c8cpu->program_counter += 2;
-  	break;
-  }
+      case 0x0033: {
+      	char contents = c8cpu->reg[(opcode & 0x0F00) >> 8];
+      	c8cpu->main_memory[c8cpu->I]     = contents / 100;  // hundreds
+      	c8cpu->main_memory[c8cpu->I + 1] = ((contents / 10) % 10); // tens
+      	c8cpu->main_memory[c8cpu->I + 2] = contents % 10;
+      	
+      	c8cpu->program_counter += 2;
+      	break;
+      }
 
 	// ---- FX55 - Stores V0 to Vx in memory starting at address I
-  case 0x0055: {
-  	char max_reg55 = (char)opcode & 0x0F00;
+      case 0x0055: {
+      	char max_reg55 = (opcode & 0x0F00) >> 8;
 
-    memcpy(c8cpu->main_memory, c8cpu->reg, (size_t)max_reg55);
-  	c8cpu->program_counter += 2;
-    break;
-  }
+        unsigned short mem_ptr = c8cpu->I;
+        for (int i = 0; i <= max_reg55; ++i) {
+          c8cpu->main_memory[mem_ptr] = c8cpu->reg[i];
+          mem_ptr += 1;
+        }
+
+      	c8cpu->program_counter += 2;
+        break;
+      }
 	// ---- FX65 - Fills V0 to VX with values from memory starting at address I
       case 0x0065: {
-	   char max_reg65 = (char)opcode & 0x0F00;
+  	   char max_reg65 = (char)opcode & 0x0F00;
 
-      memcpy(c8cpu->reg, c8cpu->main_memory, (size_t)max_reg65);
-    	c8cpu->program_counter += 2;
-    	break;
+        memcpy(c8cpu->reg, c8cpu->main_memory, (size_t)max_reg65);
+      	c8cpu->program_counter += 2;
+    	 break;
       }
     }
-  
+    }
   }
 }
 

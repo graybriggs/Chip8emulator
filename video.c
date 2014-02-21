@@ -4,7 +4,7 @@
 
 void init_video(video* v)
 {
-  v->screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_BPP, SDL_SWSURFACE);
+  v->screen = SDL_SetVideoMode(640, 320, VIDEO_BPP, SDL_SWSURFACE);
   clear_screen(v);
 }
 

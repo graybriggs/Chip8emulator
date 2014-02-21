@@ -4,6 +4,7 @@
 
 #include "SDL/SDL.h"
 
+
 #define VIDEO_WIDTH 64
 #define VIDEO_HEIGHT 32
 #define VIDEO_BPP 8
