@@ -17,6 +17,7 @@
 #include "stack.h"
 #include "debug.h"
 
+
 int main() {
 
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
@@ -30,14 +31,17 @@ int main() {
 	chip8_init(&c8cpu);
 	chip8_load_resources(&c8cpu, &v, &in);
 	
+	load_program(&c8cpu);
+
 
 	for (;;) {
+		/*
 		parse_instruction(&c8cpu, 0x620A);  // set r2 to 0A
 		parse_instruction(&c8cpu, 0x6308);  // set r3 to 09
 		parse_instruction(&c8cpu, 0x8235);  // subtract r3 from r2
 		parse_instruction(&c8cpu, 0xA003);  // set I to 123
 		parse_instruction(&c8cpu, 0xF555);  // move r4 to [I]
-		
+		*/
 
 		if (check_for_exit(c8cpu.p_input))
 			break;

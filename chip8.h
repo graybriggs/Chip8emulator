@@ -50,7 +50,7 @@ static void init_sprite_data(chip8cpu*);
 /* add_to_memory helper function */
 static void add_to_memory(chip8cpu*, char*, unsigned int);
 
-extern int load_program();
+extern int load_program(chip8cpu*);
 
 
 #endif // CHIP8_H

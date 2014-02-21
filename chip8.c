@@ -515,15 +515,27 @@ static void add_to_memory(chip8cpu* c8cpu, char* sprite, unsigned int mem_offset
 
 //---------------------
 
-int load_program()
+int load_program(chip8cpu* c8cpu)
 {
-  FILE* f = fopen("program.dat", "r");
-  if (f == NULL) {
+    FILE* f = fopen("program.dat", "r");
+    if (f == NULL) {
     fprintf(stderr, "Failed to load the program\n");
     return -1;
-  }
-  fseek(f, 0, SEEK_END);
-  size_t f_size = ftell(f);
-  rewind(f);
-}
+    }
+    fseek(f, 0, SEEK_END);
+    size_t f_size = ftell(f);
+    rewind(f);
 
+    unsigned char* mem_ptr = c8cpu->main_memory + 0x200;
+
+    while (!feof(f)) {
+        int b1 = fgetc(f);
+        int b2 = fgetc(f);
+        int b3 = fgetc(f);
+        int b4 = fgetc(f);
+
+        /// lame
+    }
+
+    c8cpu->program_counter = 0x200; // starting point in mem
+}
