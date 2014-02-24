@@ -233,10 +233,7 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
       }
       
     case 0xF000: {
-      printf("hi? %X\n",opcode);
       switch (opcode & 0x00FF) {
-
-        printf("now: %X\n", opcode & 0x00FF);
 
 	// ---- FX07 - Sets VX to the value of the delay timer
       case 0x0007:
@@ -268,6 +265,12 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
 	// ---- FX1E - Adds VX to I
       case 0x001E:
       	c8cpu->I += c8cpu->reg[(opcode & 0x0F00) >> 8];
+
+        /* this range overflow check is apparently an undocumented feature of the Chip8 */
+        if (c8cpu->I > 0xFFF) {
+            c8cpu->reg[0xF] = 1;
+        }
+
       	c8cpu->program_counter += 2;
       	break;
 
@@ -545,7 +548,7 @@ static void add_to_memory(chip8cpu* c8cpu, char* sprite, unsigned short mem_offs
 {
   // 5 bytes of memory
   for (size_t i = 0; i < 5; ++i) {
-    c8cpu->main_memory[mem_offset_pos += 1] = sprite[i];
+    c8cpu->main_memory[mem_offset_pos++] = sprite[i];
   }
 }
 
@@ -556,23 +559,28 @@ int load_program(chip8cpu* c8cpu)
 {
     FILE* f = fopen("program.dat", "r");
     if (f == NULL) {
-    fprintf(stderr, "Failed to load the program\n");
-    return -1;
+        fprintf(stderr, "Failed to load the program\n");
+        return -1;
     }
+
     fseek(f, 0, SEEK_END);
     size_t f_size = ftell(f);
     rewind(f);
 
     unsigned char* mem_ptr = c8cpu->main_memory + 0x200;
+    printf("allocating %d bytes\n", (int)f_size);
+    unsigned char* ins_buf = malloc(f_size * 2);
 
     while (!feof(f)) {
-        int b1 = fgetc(f);
-        int b2 = fgetc(f);
-        int b3 = fgetc(f);
-        int b4 = fgetc(f);
-
-        /// lame
+        fread(ins_buf, 1, 4, f);
+        printf("%X %X %X %X\n", ins_buf[0], ins_buf[1], ins_buf[2], ins_buf[3]);
     }
 
     c8cpu->program_counter = 0x200; // starting point in mem
+
+
+    for (size_t i = 0; i < f_size * 2; ++i) {
+        c8cpu->main_memory[0x200 + i] = ins_buf[i];
+    }
+
 }
