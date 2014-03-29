@@ -1,8 +1,7 @@
 
 #include "input.h"
 
-char wait_key_press(input* in)
-{
+char wait_key_press(input* in) {
 
   SDL_Event e = in->event;
   char k_press = 0x00;
