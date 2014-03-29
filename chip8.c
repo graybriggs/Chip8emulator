@@ -2,12 +2,11 @@
 
 #include "chip8.h"
 
-void chip8_init(chip8cpu* c8cpu)
-{
+void chip8_init(chip8cpu* c8cpu) {
   c8cpu->program_counter = 0x00;
   c8cpu->I = 0x00;
   
-  stack_init(&c8cpu->stack);
+  stack_init(&c8cpu->stack, &c8cpu);
 
   memset(c8cpu->main_memory, 0x00, 4096);
   memset(c8cpu->reg, 0x00, 16);
@@ -17,13 +16,11 @@ void chip8_init(chip8cpu* c8cpu)
 
 
 void chip8_load_resources(chip8cpu* c8cpu, video* v, input* in) {
-
   c8cpu->p_video = v;
   c8cpu->p_input = in;
 }
 
-void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
-{
+void parse_instruction(chip8cpu* c8cpu, unsigned short opcode) {
     switch(opcode & 0xF000) {
       // ignored
     case 0x0000: {
@@ -50,7 +47,7 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
     
     // ---- 2NNN - call subroutine at NNN
     case 0x2000:
-      stack_push(&c8cpu->stack, c8cpu->program_counter);
+      stack_push(&c8cpu->stack, &c8cpu, c8cpu->program_counter);
       c8cpu->program_counter = opcode & 0x0FFF;
       break;
 
@@ -321,8 +318,7 @@ void parse_instruction(chip8cpu* c8cpu, unsigned short opcode)
    characters 0-9, A-F. 
 */
 
-void init_sprite_data(chip8cpu* c8cpu)
-{
+void init_sprite_data(chip8cpu* c8cpu) {
   unsigned short mem_offset = 0;
 
   // 16 characters
@@ -544,8 +540,7 @@ void init_sprite_data(chip8cpu* c8cpu)
 }
 
 
-static void add_to_memory(chip8cpu* c8cpu, char* sprite, unsigned short mem_offset_pos)
-{
+static void add_to_memory(chip8cpu* c8cpu, char* sprite, unsigned short mem_offset_pos) {
   // 5 bytes of memory
   for (size_t i = 0; i < 5; ++i) {
     c8cpu->main_memory[mem_offset_pos++] = sprite[i];
@@ -555,8 +550,7 @@ static void add_to_memory(chip8cpu* c8cpu, char* sprite, unsigned short mem_offs
 
 //---------------------
 
-int load_program(chip8cpu* c8cpu)
-{
+int load_program(chip8cpu* c8cpu) {
     FILE* f = fopen("program.dat", "r");
     if (f == NULL) {
         fprintf(stderr, "Failed to load the program\n");
