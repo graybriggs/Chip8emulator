@@ -2,14 +2,12 @@
 #include "video.h"
 
 
-void init_video(video* v)
-{
+void init_video(video* v) {
   v->screen = SDL_SetVideoMode(640, 320, VIDEO_BPP, SDL_SWSURFACE);
   clear_screen(v);
 }
 
-void clear_screen(video* v)
-{	
+void clear_screen(video* v) {	
   for (int i = 0; i < VIDEO_HEIGHT; ++i) {
     for (int j = 0; j < VIDEO_WIDTH; ++j) {
       v->virtual_screen[i * VIDEO_HEIGHT + j] = 0;
@@ -17,8 +15,7 @@ void clear_screen(video* v)
   }
 }
 
-void draw_sprite(video* v, unsigned char x, unsigned char y)
-{
+void draw_sprite(video* v, unsigned char x, unsigned char y) {
   SDL_Surface* scr = v->screen;
 	
   for (int i = 0; i < y; ++i) {
@@ -28,8 +25,7 @@ void draw_sprite(video* v, unsigned char x, unsigned char y)
   }
 }
 
-static void draw_chip8_pixel(video* v, unsigned char on_off)
-{
+static void draw_chip8_pixel(video* v, unsigned char on_off) {
   SDL_Surface* scr = v->screen;
 
   for (int h = 0; h < 8; ++h) {
@@ -43,8 +39,7 @@ static void draw_chip8_pixel(video* v, unsigned char on_off)
 
 }
 
-int draw_screen(video* v)
-{
+int draw_screen(video* v) {
   SDL_Surface* scr = v->screen;
 
   if (SDL_MUSTLOCK(scr)) {
