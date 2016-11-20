@@ -7,10 +7,9 @@
 void chip8_init(chip8cpu* c8cpu) {
   c8cpu->program_counter = PROGRAM_MEMORY_START;
   c8cpu->I = 0x00;
-  
-  stack_init(&c8cpu->stack, c8cpu);
+  c8cpu->SP = STACK_START_ADDR;
 
-  memset(c8cpu->main_memory, 0x00, CHIP8_MEMORY_MAX);
+  memset(c8cpu->main_memory, 0x00, CHIP_8_MEMORY_MAX);
   memset(c8cpu->reg, 0x00, NUM_REGISTERS);
 
   init_sprite_data(c8cpu);
@@ -26,19 +25,43 @@ void advance_pc(chip8cpu* c8cpu) {
   c8cpu->program_counter += 2;
 }
 
-void read_instruction(chip8cpu* c8cpu) {
-  return chip8cpu->main_memory[c8cpu->program_counter];
+WORD read_instruction(chip8cpu* c8cpu) {
+  BYTE lhs = c8cpu->main_memory[c8cpu->program_counter];
+  BYTE rhs = c8cpu->main_memory[c8cpu->program_counter + 1];
+
+  return (lhs << 8) | rhs;
 }
 
 void fetch_decode_execute_cycle(chip8cpu* c8cpu) {
 
-  BYTE ins = read_instruction(c8cpu);
+  WORD ins = read_instruction(c8cpu);
 
-  for (;;) {
+  //for (;;) {
+    advance_pc(c8cpu);
+printf("%x\n",ins);
+    parse_instruction(c8cpu, ins); // decode and execute happens here
+    ins = read_instruction(c8cpu);
+
+
     advance_pc(c8cpu);
     parse_instruction(c8cpu, ins); // decode and execute happens here
     ins = read_instruction(c8cpu);
-  }
+
+
+    advance_pc(c8cpu);
+    parse_instruction(c8cpu, ins); // decode and execute happens here
+    ins = read_instruction(c8cpu);
+
+
+    advance_pc(c8cpu);
+    parse_instruction(c8cpu, ins); // decode and execute happens here
+    ins = read_instruction(c8cpu);
+
+
+    advance_pc(c8cpu);
+    parse_instruction(c8cpu, ins); // decode and execute happens here
+    ins = read_instruction(c8cpu);
+  //}
 }
 
 
@@ -55,8 +78,8 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
       }
       // ---- 00EE - returns from subroutine -----
       else if((opcode & 0x00FF) == OPCODE_RET) {
-      	c8cpu->program_counter = stack_top(c8cpu->stack);
-      	stack_pop(&c8cpu->stack);
+      	c8cpu->program_counter = stack_top(c8cpu);
+      	stack_pop(c8cpu);
       }
     }
     
@@ -68,15 +91,14 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
     
     // ---- 2NNN - call subroutine at NNN
     case OPCODE_CALL:
-      stack_push(&c8cpu->stack, &c8cpu, c8cpu->program_counter);
+      stack_push(c8cpu, c8cpu->program_counter); // push next instruction on stack
       c8cpu->program_counter = opcode & 0x0FFF;
       break;
 
       // ---- 3XNN - Skips the next instruction if VX equals NN
     case OPCODE_SKIP_IF_EQUAL:
       if (c8cpu->reg[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))
-       advance_pc(c8cpu);
-
+        advance_pc(c8cpu);
       break;
 
       // ---- 4XNN - Skips the next instruction if VX doesn't erqual NN
@@ -98,7 +120,7 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
 
       // ---- 7XNN - Adds NN to VX
     case OPCODE_ADD_BYTE_REG:
-      c8cpu->reg[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
+      c8cpu->reg[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
       break;
 
     case 0x8000: {
@@ -161,7 +183,7 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
       	break;
 
       // ----- 8XYE - Shifts VX left by one. VF is set to the value of the MSB of VX before the shift
-      case OCODE_SHIFT_ONE_LEFT:
+      case OPCODE_SHIFT_ONE_LEFT:
         advance_pc(c8cpu);
       	c8cpu->reg[0x000F] = (c8cpu->reg[(opcode & 0x0F00) >> 8] & 0x8000);
       	c8cpu->reg[(opcode & 0x0F00) >> 8] >>= 1;  // do the shift
@@ -215,14 +237,12 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
           advance_pc(c8cpu);
         }      
       }
-
       // ---- EXA1 - Skips the next instruction if the key stored in VX isn't pressed
       else if ((opcode & 0x00FF) == OPCODE_SKIP_NOT_KEY) {
 	      if (get_key_pressed(c8cpu->p_input) != c8cpu->reg[(opcode & 0x0F00) >> 8]) { ///INPUT
           advance_pc(c8cpu);
         }        
 	     }
-      }
       
     case 0xF000: {
       switch (opcode & 0x00FF) {
@@ -289,13 +309,37 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
       case OPCODE_FILL: {
   	    BYTE max_reg65 = (BYTE)opcode & 0x0F00;
 
-        memcpy(c8cpu->reg, c8cpu->main_memory, (CHAR)max_reg65);
+        memcpy(c8cpu->reg, c8cpu->main_memory, (BYTE)max_reg65);
     	 break;
       }
     }
     }
   }
 }
+
+
+void stack_init(chip8cpu* c8cpu) {
+
+  c8cpu->SP = STACK_START_ADDR;
+}
+
+void stack_push(chip8cpu* c8cpu, BYTE val) {
+
+  c8cpu->main_memory[c8cpu->SP] = val;
+  c8cpu->SP++;
+
+  if (c8cpu->SP >= STACK_START_ADDR + STACK_LEVELS)
+    c8cpu->SP = STACK_START_ADDR; // stack wraparound
+}
+
+BYTE stack_top(chip8cpu* c8cpu) {
+  return c8cpu->main_memory[c8cpu->SP];
+}
+
+void stack_pop(chip8cpu* c8cpu) {
+  c8cpu->SP--;
+}
+
 
 /* The first 0x1FF areas of memory in the Chip8 are reserved for
    the interpreter. Part of this memory is used to store the 16
@@ -545,17 +589,30 @@ int load_program(chip8cpu* c8cpu) {
     size_t f_size = ftell(f);
     rewind(f);
 
-    BYTE* mem_ptr = c8cpu->main_memory + 0x200;
+    BYTE* mem_ptr = c8cpu->main_memory + PROGRAM_MEMORY_START;
     printf("allocating %d bytes\n", (int)f_size);
     BYTE* ins_buf = malloc(f_size * 2);
 
     while (!feof(f)) {
         fread(ins_buf, 1, 4, f);
-        printf("%X %X %X %X\n", ins_buf[0], ins_buf[1], ins_buf[2], ins_buf[3]);
+        printf("%c %c %c %c\n", ins_buf[0], ins_buf[1], ins_buf[2], ins_buf[3]);
+
     }
 
     for (unsigned i = 0; i < f_size * 2; ++i) {
         c8cpu->main_memory[PROGRAM_MEMORY_START + i] = ins_buf[i];
     }
+  c8cpu->main_memory[0x0200] = 0x62;
+  c8cpu->main_memory[0x0201] = 0x0A;
+  c8cpu->main_memory[0x0202] = 0x63;
+  c8cpu->main_memory[0x0203] = 0x08;
+  c8cpu->main_memory[0x0204] = 0x82;
+  c8cpu->main_memory[0x0205] = 0x35;
+  c8cpu->main_memory[0x0206] = 0xA0;
+  c8cpu->main_memory[0x0207] = 0x03;
+  c8cpu->main_memory[0x0208] = 0xF5;
+  c8cpu->main_memory[0x0209] = 0x55;
 
+
+   return 0;
 }
