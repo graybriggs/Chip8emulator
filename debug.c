@@ -22,10 +22,10 @@ void main_memory_dump(chip8cpu* c8cpu) {
   }
 }
 
-void print_stack_trace(stack* stack) {
-  printf("\n\nStack Pointer - %X\n\n", stack->SP);
+void print_stack_trace(chip8cpu* c8cpu) {
+  printf("\n\nStack Pointer - %X\n\n", c8cpu->SP);
   
   for (int i = 0; i < STACK_LEVELS; i++) {
-    printf("%hd - %X\n", stack->callstack[i]);
+    printf("%hd - %X\n", c8cpu->main_memory[STACK_START_ADDR + i]);
   }
 }
