@@ -554,11 +554,8 @@ int load_program(chip8cpu* c8cpu) {
         printf("%X %X %X %X\n", ins_buf[0], ins_buf[1], ins_buf[2], ins_buf[3]);
     }
 
-    c8cpu->program_counter = 0x200; // starting point in mem
-
-
     for (unsigned i = 0; i < f_size * 2; ++i) {
-        c8cpu->main_memory[0x200 + i] = ins_buf[i];
+        c8cpu->main_memory[PROGRAM_MEMORY_START + i] = ins_buf[i];
     }
 
 }
