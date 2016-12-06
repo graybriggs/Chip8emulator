@@ -4,6 +4,11 @@
 
 #include "opcodes.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 void chip8_init(chip8cpu* c8cpu) {
   c8cpu->program_counter = PROGRAM_MEMORY_START;
   c8cpu->I = 0x00;
@@ -36,40 +41,26 @@ void fetch_decode_execute_cycle(chip8cpu* c8cpu) {
 
   WORD ins = read_instruction(c8cpu);
 
-  //for (;;) {
-    advance_pc(c8cpu);
-printf("%x\n",ins);
-    parse_instruction(c8cpu, ins); // decode and execute happens here
-    ins = read_instruction(c8cpu);
+  for (;;) {
+    if (ins == 0x0000) break;
 
-
+    printf("Executing: %x\n",ins);
     advance_pc(c8cpu);
     parse_instruction(c8cpu, ins); // decode and execute happens here
     ins = read_instruction(c8cpu);
-
-
-    advance_pc(c8cpu);
-    parse_instruction(c8cpu, ins); // decode and execute happens here
-    ins = read_instruction(c8cpu);
-
-
-    advance_pc(c8cpu);
-    parse_instruction(c8cpu, ins); // decode and execute happens here
-    ins = read_instruction(c8cpu);
-
-
-    advance_pc(c8cpu);
-    parse_instruction(c8cpu, ins); // decode and execute happens here
-    ins = read_instruction(c8cpu);
-  //}
+  }
 }
 
 
 
 void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
+
+    printf("One: %X\n",opcode);
+
     switch(opcode & 0xF000) {
+
       // ignored
-    case 0x00: {
+    case 0x0000: {
       // ignored
 
       // ---- 00E0 - Clears the screen -----
@@ -86,7 +77,6 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
       // ---- 1NNN - Jumps to address NNN
     case OPCODE_JP:
       c8cpu->program_counter = opcode & 0x0FFF;
-      advance_pc(c8cpu);
       break;
     
     // ---- 2NNN - call subroutine at NNN
@@ -124,6 +114,7 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
       break;
 
     case 0x8000: {
+      printf("At: %X\n", opcode);
       switch (opcode & 0x000F) {
      
 	// ---- 8XY0 - Sets VX to the value of VY
@@ -158,6 +149,7 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
 
 	// ----- 8XY5 - VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
       case OPCODE_SUB: {
+        printf("yo\n");
         // extract registers
         BYTE rx = (opcode & 0x0F00) >> 8;
         BYTE ry = (opcode & 0x00F0) >> 4;
@@ -168,7 +160,7 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
         // if borrow set register 16 to 1
       	if (vx - vy < 0)
       	  c8cpu->reg[15] = 0x01;
-
+        printf("-->%X, %X\n", rx, ry);
       	c8cpu->reg[rx] = c8cpu->reg[rx] - c8cpu->reg[ry];
       	break;
       }
@@ -184,7 +176,6 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
 
       // ----- 8XYE - Shifts VX left by one. VF is set to the value of the MSB of VX before the shift
       case OPCODE_SHIFT_ONE_LEFT:
-        advance_pc(c8cpu);
       	c8cpu->reg[0x000F] = (c8cpu->reg[(opcode & 0x0F00) >> 8] & 0x8000);
       	c8cpu->reg[(opcode & 0x0F00) >> 8] >>= 1;  // do the shift
 	       break;
@@ -202,6 +193,7 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
 
       // ---- ANNN - Sets I to the address NNN
     case OPCODE_SET_IP:
+      printf("Here: %X\n", opcode & 0x0FFF);
       c8cpu->I = (opcode & 0x0FFF);
       break;
 
@@ -225,8 +217,8 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
 
       // copy 5 bytes of 
 
-      unsigned char vx = c8cpu->reg[(opcode & 0x0F00) >> 8];
-      unsigned char vy = c8cpu->reg[(opcode & 0x00F0) >> 4];
+      BYTE vx = c8cpu->reg[(opcode & 0x0F00) >> 8];
+      BYTE vy = c8cpu->reg[(opcode & 0x00F0) >> 4];
       draw_sprite(c8cpu->p_video, vx, vy); 
       break;
     }
@@ -250,7 +242,6 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
 	// ---- FX07 - Sets VX to the value of the delay timer
       case OPCODE_TIMER:
       	set_delay_timer(&c8cpu->timer, c8cpu->reg[(opcode & 0x0F00) >> 8]);
-      	advance_pc(c8cpu);
       	break;
 
 	// ---- FX0A - A key press is awaited and then stored in VX
@@ -308,7 +299,6 @@ void parse_instruction(chip8cpu* c8cpu, WORD opcode) {
 	// ---- FX65 - Fills V0 to VX with values from memory starting at address I
       case OPCODE_FILL: {
   	    BYTE max_reg65 = (BYTE)opcode & 0x0F00;
-
         memcpy(c8cpu->reg, c8cpu->main_memory, (BYTE)max_reg65);
     	 break;
       }
@@ -579,7 +569,9 @@ static void add_to_memory(chip8cpu* c8cpu, BYTE* sprite, WORD mem_offset_pos) {
 //---------------------
 
 int load_program(chip8cpu* c8cpu) {
-    FILE* f = fopen("program.dat", "r");
+
+/*
+    FILE* f = fopen("program.dat", "rb");
     if (f == NULL) {
         fprintf(stderr, "Failed to load the program\n");
         return -1;
@@ -593,26 +585,32 @@ int load_program(chip8cpu* c8cpu) {
     printf("allocating %d bytes\n", (int)f_size);
     BYTE* ins_buf = malloc(f_size * 2);
 
-    while (!feof(f)) {
-        fread(ins_buf, 1, 4, f);
-        printf("%c %c %c %c\n", ins_buf[0], ins_buf[1], ins_buf[2], ins_buf[3]);
+    while (fread(ins_buf, 1, 4, f)) {
+        printf("%d %d %d %d\n", ins_buf[0], ins_buf[1], ins_buf[2], ins_buf[3]);
 
     }
-
+/*
     for (unsigned i = 0; i < f_size * 2; ++i) {
         c8cpu->main_memory[PROGRAM_MEMORY_START + i] = ins_buf[i];
     }
+*/
   c8cpu->main_memory[0x0200] = 0x62;
   c8cpu->main_memory[0x0201] = 0x0A;
+
   c8cpu->main_memory[0x0202] = 0x63;
   c8cpu->main_memory[0x0203] = 0x08;
+
   c8cpu->main_memory[0x0204] = 0x82;
   c8cpu->main_memory[0x0205] = 0x35;
+
   c8cpu->main_memory[0x0206] = 0xA0;
   c8cpu->main_memory[0x0207] = 0x03;
+
   c8cpu->main_memory[0x0208] = 0xF5;
   c8cpu->main_memory[0x0209] = 0x55;
 
+  c8cpu->main_memory[0x020A] = 0x00;
+  c8cpu->main_memory[0x020B] = 0x00;
 
    return 0;
 }
