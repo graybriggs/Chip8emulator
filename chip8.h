@@ -2,11 +2,6 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
 #include "types.h"
 
 //#include "stack.h"
